@@ -47,11 +47,17 @@ setup() {
          localStorage.setItem('name', data['name']);
 
          setAuthHeader(data['access_token']);
+         router.push({name: 'Dashboard',params : {id : localStorage['id']}});
       })
-      .catch(error => { console.log(error) })
+      .catch(error => { 
+         if(error){
+            router.push({name:'Login'})
+            alert("Wrong Password, Please try again")
+         }
+       })
 
 
-      await router.push({name: 'Dashboard',params : {id : localStorage['id']}});
+      
    }
   return {
       data,

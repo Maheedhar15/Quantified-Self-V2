@@ -19,9 +19,9 @@
                 <th>{{item.tracker_settings}}</th>
                 <th>{{item.datecreated}}</th>
                 <th><button class="btn btn-outline-dark">+</button></th>
-                <th><button class="btn btn-outline-dark"><router-link :to="{ name: 'tupdate', params : {id : 4 } }" style="text-decoration:none; color: black;">Update</router-link></button>
+                <th><button class="btn btn-outline-dark"><router-link :to="`/trackers/${item.trackerid}/Update`" style="text-decoration:none; color: black;">Update</router-link></button>
                 </th>
-                <th>  <button class="btn btn-outline-dark">  <router-link to="/trackers/{{item.trackerid}}/Delete" style="text-decoration:none; color: black;">Delete</router-link></button></th>
+                <th>  <button class="btn btn-outline-dark">  <router-link :to="`/trackers/${item.trackerid}/Delete`" style="text-decoration:none; color: black;">Delete</router-link></button></th>
                 
             </tr>
   </tbody>
@@ -51,16 +51,22 @@ data() {
 },
 methods:{
   getTrackers(){
+    const router = useRouter()
     const path = 'http://localhost:5000/trackers/'+ localStorage['id'] 
     axios.get(path)
     .then((res) => {
       this.items = res.data.tracker
   })
  
-    .catch((err) => console.log(err.response))
+    .catch((err) => {
+      if(err.response.status == 401){
+        router.push({name:'Login'})
+        alert("Token expired")
+      }
+    })
 
     console.log(this.items);
-  }
+  },
 },
 setup() {
   const router = useRouter();

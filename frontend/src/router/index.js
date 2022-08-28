@@ -4,6 +4,8 @@ import LoginView from '../views/LoginView'
 import RegisterView from '../views/RegisterView'
 import TrackersView from '@/views/TrackersView';
 import CreateTracker from '@/views/CreateTracker'
+import DeleteTracker from '@/views/DeleteTracker'
+import UpdateTracker from '@/views/UpdateTracker'
 
 const routes = [
   {
@@ -42,11 +44,14 @@ const routes = [
   {
     path: '/trackers/:id/Delete',
     name: 'tdelete',
+    component: DeleteTracker
   },
   {
     path: '/trackers/:id/Update',
     name: 'tupdate',
-  }
+    component: UpdateTracker
+  },
+
 ]
 
 const router = createRouter({

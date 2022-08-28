@@ -1,7 +1,7 @@
 <template>
-    <a href="/trackers/{{name}}" style="text-decoration: none;"><h4 style="text-align:right">Back to Trackers</h4></a>
+    <router-link :to="`/trackers/{{u_id}}`" style="text-decoration: none;"><h4 style="text-align:right">Back to Trackers</h4></router-link>
 
-    <h1 style="margin-top: 107px; text-align: center;">Create your tracker here</h1>
+    <h1 style="margin-top: 107px; text-align: center;">Update your tracker here</h1>
     <form @submit.prevent="submit" style="margin-right: 522px;margin-top: 29px; margin-left: 519px" method="POST" action='/trackers/{{name}}/create'>
         <div class="form-group">
           <label for="exampleInputEmail1">Tracker name</label>
@@ -25,7 +25,7 @@
           <textarea v-model="data.tsettings" class="form-control" id="exampleFormControlTextarea1" rows="3" placeholder="Tracker settings(Enter different settings as comma separated values)"></textarea>
           <small>If your tracker type is Numerical, dont enter anything in this box</small>
         </div>   
-        <button type="submit" class="btn btn-outline-dark">create tracker</button>
+        <button type="submit" class="btn btn-outline-dark">Update tracker</button>
       </form>
 </template>
 
@@ -33,10 +33,17 @@
 import { useRouter } from 'vue-router';
 import { reactive } from 'vue'
 export default {
-Name: 'CreateTracker',
-
+Name: 'UpdateTracker',
+data(){
+    return{
+        id: this.$route.params.id,
+        u_id: localStorage['id']
+    }
+},
+mounted(){
+  localStorage.setItem('tracker_id',this.id)
+},
 setup() {
-
   const data = reactive({
     tname: '',
     tdesc: '',
@@ -45,7 +52,7 @@ setup() {
   })
    const router = useRouter();
    const submit = async () => {
-      await fetch('http://localhost:5000/createtracker/'+localStorage['id'],{
+      await fetch('http://localhost:5000/trackers/update/'+ localStorage['tracker_id'],{
          method: 'POST',
          headers: {'Content-Type' : 'application/json','Access-Control-Allow-Origin': '*'},
          body: JSON.stringify(data)

@@ -8,14 +8,22 @@
 
 <script>
 import axios from 'axios';
+import { useRouter } from 'vue-router';
 
 
 export default {
 Name: 'HomeView',
 mounted() {
+    const router = useRouter();
     axios.get('http://localhost:5000/')
     .then((resp ) => console.log(resp.data))
-    .catch((err) => console.log(err.response))
+    .catch((err) => {
+        if(err.response.status == 401){
+            router.push({name:'Login'})
+            alert("Token Expired")
+        }
+        
+    })
 },
 data() {
     return {

@@ -113,8 +113,29 @@ def u_tracker(id):
     )
 
 @app.route('/trackers/delete/<int:id>', methods=['GET'])
-def method_name():
-    pass
+def delete_tracker(id):
+    data = tracker.query.filter_by(tracker_id=id).first()
+    db.session.delete(data)
+    db.session.commit()
+    return jsonify({'message': 'success'})
+
+@app.route('/trackers/update/<int:id>', methods=['GET','POST'])
+def update_tracker(id):
+    data = tracker.query.filter_by(tracker_id=id).first()
+    if(request.method=='POST'):
+        data2 = request.json
+        tname = data2['tname']
+        ttype = data2['ttype']
+        tdesc = data2['tdesc']
+        tsettings = data2['tsettings']
+        data.tracker_name = tname
+        data.tracker_type = ttype
+        data.tracker_description = tdesc
+        data.tracker_settings = tsettings
+        db.session.add(data)
+        db.session.commit()
+    return jsonify( { 'message' : 'Success' } )
+
 
 @app.route('/createtracker/<int:id>', methods=['GET', 'POST'])
 def createtracker(id):
