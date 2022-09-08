@@ -1,7 +1,7 @@
 <template>
    <form class="form-signin" @submit.prevent="submit">
 
-  <h1 class="h3 mb-3 font-weight-normal">Please Register</h1>
+  <h1 class="h3 mb-3 font-weight-normal header">Please Register</h1>
 
   <input v-model="data.name" class="form-control" placeholder="Name" required>
   
@@ -46,5 +46,7 @@ setup() {
 </script>
 
 <style>
-
+.header{
+   margin-top:250px
+}
 </style>

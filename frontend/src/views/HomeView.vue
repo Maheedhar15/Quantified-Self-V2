@@ -2,6 +2,7 @@
 <body>
 <div id="Home">
     <h1 class="header"> Welcome {{name}} </h1>
+    <h3>to Quantified Self V2</h3>
         <p></p>
   </div>    </body>  
 </template>

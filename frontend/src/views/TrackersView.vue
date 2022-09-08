@@ -14,11 +14,11 @@
   <tbody>
 <tr v-for="item,index in items" :key="index">
                 <th>{{index}}</th>
-                <th>{{item.trackername}}</th>
+                <th> <router-link :to="`/viewtracker/${id}/${item.trackerid}`" style="text-decoration: none; color: orange;" >{{item.trackername}}</router-link> </th>
                 <th>{{item.trackerdesc}}</th>
                 <th>{{item.tracker_settings}}</th>
                 <th>{{item.datecreated}}</th>
-                <th><button class="btn btn-outline-dark">+</button></th>
+                <th><router-link :to="`/addLog/${id}/${item.trackerid}`" style="text-decoration:none; color: black;"><button class="btn btn-outline-dark">+</button> </router-link> </th>
                 <th><button class="btn btn-outline-dark"><router-link :to="`/trackers/${item.trackerid}/Update`" style="text-decoration:none; color: black;">Update</router-link></button>
                 </th>
                 <th>  <button class="btn btn-outline-dark">  <router-link :to="`/trackers/${item.trackerid}/Delete`" style="text-decoration:none; color: black;">Delete</router-link></button></th>
@@ -46,6 +46,7 @@ data() {
     return {
         name: localStorage.name,
         items : [],
+        id : localStorage['id'] 
         
     }
 },
@@ -84,6 +85,8 @@ created() {
 </script>
 
 <style scoped>
+
+
     body {
     background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
     background-size: 400% 400%;

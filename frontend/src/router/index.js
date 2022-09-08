@@ -6,6 +6,10 @@ import TrackersView from '@/views/TrackersView';
 import CreateTracker from '@/views/CreateTracker'
 import DeleteTracker from '@/views/DeleteTracker'
 import UpdateTracker from '@/views/UpdateTracker'
+import AddLog from '@/views/AddLog'
+import TrackerInfo from '@/views/TrackerInfo'
+import UpdateLog from '@/views/UpdateLog'
+import DeleteLog from '@/views/DeleteLog'
 
 const routes = [
   {
@@ -51,6 +55,27 @@ const routes = [
     name: 'tupdate',
     component: UpdateTracker
   },
+  {
+    path: '/addLog/:uid/:tid',
+    name: 'AddLog',
+    component: AddLog
+    
+  },
+  {
+    path: '/updateLog/:l_id/:tid',
+    name: 'UpdateLog',
+    component : UpdateLog
+  },
+  {
+    path: '/deleteLog/:l_id',
+    name: 'DeleteLog',
+    component : DeleteLog
+  },
+  {
+    path: '/viewtracker/:uid/:tid',
+    name: 'Trackerinfo',
+    component: TrackerInfo
+  }
 
 ]
 
