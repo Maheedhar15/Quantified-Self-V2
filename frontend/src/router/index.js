@@ -10,6 +10,7 @@ import AddLog from '@/views/AddLog'
 import TrackerInfo from '@/views/TrackerInfo'
 import UpdateLog from '@/views/UpdateLog'
 import DeleteLog from '@/views/DeleteLog'
+import LogOut from '@/views/LogOut'
 
 const routes = [
   {
@@ -38,7 +39,8 @@ const routes = [
   },
   {
     path: '/logout/:id',
-    name: 'logout'
+    name: 'logout',
+    component: LogOut
   },
   {
     path: '/createtracker/:id',

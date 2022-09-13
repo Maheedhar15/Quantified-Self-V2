@@ -1,6 +1,4 @@
-from crypt import methods
-import smtplib
-from lib2to3.pgen2 import token
+from jinja2 import Template,PackageLoader,Environment
 from urllib import response
 from flask import Flask,jsonify, render_template,session,request,make_response
 from flask_sqlalchemy import SQLAlchemy
@@ -8,10 +6,23 @@ from flask_cors import CORS
 from datetime import datetime
 import matplotlib.pyplot as plt
 import numpy as np
+from flask import render_template,jsonify
+from jinja2 import Template
+import smtplib
+from weasyprint import HTML
 from celery import Celery
-from flask_weasyprint import HTML, render_pdf
-import bcrypt
+from application import application
 from celery.schedules import crontab
+from application import db,user,logtable,tracker
+from email.mime import MIMEMultipart,MIMEApplication,MIMEText,basename
+import bcrypt
+
+from flask_jwt_extended import create_access_token
+from flask_jwt_extended import get_jwt_identity
+from flask_jwt_extended import jwt_required
+from flask_jwt_extended import JWTManager,get_jwt
+
+
 
 
 application = Flask(__name__)
@@ -28,18 +39,9 @@ celery = Celery(application.name , broker=application.config['CELERY_BROKER_URL'
 celery.conf.update(application.config)
 
 
-
-from flask_jwt_extended import create_access_token
-from flask_jwt_extended import get_jwt_identity
-from flask_jwt_extended import jwt_required
-from flask_jwt_extended import JWTManager 
-
-
-
-
-
 # Setup the Flask-JWT-Extended extension
 application.config["JWT_SECRET_KEY"] = "54\x85\xfc\x1a*Y\xae"  # Change this!
+
 jwt = JWTManager(application)
 
 
@@ -289,62 +291,86 @@ def updateLog(lid,tid):
     
     return jsonify({'tracker_info' : d},{'logdata' : d1})
 
+
 @celery.task()
-def report(id):
-    with application.app_context():
-        udata = user.query.filter_by(uid=id).first()
-        tdata = tracker.query.filter_by(u_id=id).all()
-        l1 =[]
-        for i in tdata:
-            tracker_id = i.tracker_id
-            
-            if(i.tracker_type == 'Numerical'):
-                avgvalue = 0
-                ldata = logtable.query.filter_by(user_id=id,t_id=tracker_id).all()
-                for j in ldata:
-                    avgvalue += int(j.value)
-                avgvalue = avgvalue/len(ldata)
-                l1.append([i.tracker_name,i.tracker_type,avgvalue])
-            else:
-                cnt = 0
-                highest = ''
-                d ={}
-                ldata = logtable.query.filter_by(user_id=id,t_id=tracker_id).all()
-                for j in ldata:
-                    if j.value not in d.keys():
-                        d[j.value] = 1
-                    else:
-                        d[j.value]+=1
-                for j in d.items():
-                    if(j[1]>cnt):
-                        highest = j[0]
-                        cnt = j[1]
-                l1.append([i.tracker_name,i.tracker_type,highest])
-        return render_template('report.html',l1=l1,udata=udata)
+def monthly_report():
+    file_loader = PackageLoader("application", "templates")
+    env = Environment(loader=file_loader)
+    # Extracting user
+    users = user.query.all()
+    # Creating charts for the trackers
 
-#Configuring SMTP
+    for user in users:
+        create_charts(user)
+        # Creating Monthly Report in Html
+        rendered = env.get_template("report_template.html").render(trackers=user.trackers)
+        filename = "report.html"
+        with open(f"./backend/static/{filename}", "w") as f:
+            f.write(rendered)
 
-sender = 'quantified.self.v2@gmail.com'
-recievers =[]
-udata = user.query.all()
-for i in udata:
-    recievers.append(i.mail)
-print(recievers)
+        msg = MIMEMultipart()
+        msg["From"] = 'quantified.self.v2@gmail.com'
+        msg["To"] = user.mail
+        msg["Subject"] = "Monthly Report"
+        body = MIMEText("Inside Body, Testing", "plain")
+        msg.attach(body)
+        with open(f"./backend/static/{filename}", "r") as f:
+            attachment = MIMEApplication(f.read(), Name=basename(filename))
+            attachment["Content-Disposition"] = 'attachment; filename="{}"'.format(basename(filename))
 
+        msg.attach(attachment)
+
+        with smtplib.SMTP("smtp.mail.yahoo.com") as connection:
+            connection.starttls()
+            connection.login(user='quantified.self.v2@gmail.com', password='mahee@154')
+            connection.send_message(
+                msg=msg,
+                from_addr='quantified.self.v2@gmail.com',
+                to_addrs=[user.mail],
+            )
+
+    return "Monthly Report Send"
+
+@celery.task()
+def daily_alert():
+
+    users = user.query.all()
+
+    for user in users:
+        msg = MIMEMultipart()
+        msg["From"] = 'quantified.self.v2@gmail.com'
+        msg["To"] = user.mail
+        msg["Subject"] = "Monthly Report"
+        body = MIMEText("This is a daily reminder for you to log into your trackers")
+        msg.attach(body)
+
+        with smtplib.SMTP("smtp.mail.yahoo.com") as connection:
+            connection.starttls()
+            connection.login(user='quantified.self.v2@gmail.com', password='mahee@154')
+            connection.send_message(
+                msg=msg,
+                from_addr='quantified.self.v2@gmail.com',
+                to_addrs=[user.mail],
+            )
+    
+    return "Daily alert sent"
+
+
+@celery.on_after_finalize.connect
+def setup_periodic_tasks(sender, **kwargs):
+    sender.add_periodic_task(crontab(hour=11, minute=26), daily_alert.s(), name='Daily Alert')
+    sender.add_periodic_task(crontab(hour=23, minute=30, day_of_month=1), monthly_report.s(), name="Monthly Reports")
 
         
 
-@application.route('/report/<int:id>')
-def gen_report(id):
-    report.delay(id)
+@application.route('/report/<id>')
+def daily(id):
+    monthly_report.delay(id)
     return jsonify({'status':'ok'})
 
-celery.conf.beat_schedule = {
-    'report_gen' : {
-        'tasks' : 'app.tasks.report',
-        'schedule': crontab(0,0,day_of_month=1)
-    }
-}
+
+
+
 
 if __name__ == "__main__":
     application.run(debug=True)
